@@ -18,10 +18,9 @@ describe("modals", () => {
       then(get.elementByTestId("modal:open")).shouldNotExist();
     });
 
-    it.skip("upload", () => {
-      // HM: I was not able to make the following choose file actually to select a file and close the modal...
+    it("upload", () => {
       when.chooseExampleFile();
-      then(get.responseBody("example-style.json")).shouldEqualToStoredStyle();
+      then(get.fixture("example-style.json")).shouldEqualToStoredStyle();
     });
 
     describe("when click open url", () => {
@@ -171,12 +170,22 @@ describe("modals", () => {
     });
 
     it("sprite url", () => {
-      when.setValue("modal:settings.sprite", "http://example.com");
+      when.setTextInJsonEditor("\"http://example.com\"");
       when.click("modal:settings.name");
       then(get.styleFromLocalStorage()).shouldDeepNestedInclude({
         sprite: "http://example.com",
       });
     });
+
+    it("sprite object", () => {
+      when.setTextInJsonEditor(JSON.stringify([{ id: "1", url: "2" }]));
+
+      when.click("modal:settings.name");
+      then(get.styleFromLocalStorage()).shouldDeepNestedInclude({
+        sprite: [{ id: "1", url: "2" }],
+      });
+    });
+
     it("glyphs url", () => {
       const glyphsUrl = "http://example.com/{fontstack}/{range}.pbf";
       when.setValue("modal:settings.glyphs", glyphsUrl);
@@ -224,6 +233,41 @@ describe("modals", () => {
       ).shouldInclude({ "maputnik:stadia_access_token": apiKey });
     });
 
+    it("locationiq access token", () => {
+      const apiKey = "testing123";
+      when.setValue(
+        "modal:settings.maputnik:locationiq_access_token",
+        apiKey
+      );
+      when.click("modal:settings.name");
+      then(
+        get.styleFromLocalStorage().then((style) => style.metadata)
+      ).shouldInclude({ "maputnik:locationiq_access_token": apiKey });
+    });
+
+    it("style projection mercator", () => {
+      when.select("modal:settings.projection", "mercator");
+      then(
+        get.styleFromLocalStorage().then((style) => style.projection)
+      ).shouldInclude({ type: "mercator" });
+    });
+
+    it("style projection globe", () => {
+      when.select("modal:settings.projection", "globe");
+      then(
+        get.styleFromLocalStorage().then((style) => style.projection)
+      ).shouldInclude({ type: "globe" });
+    });
+
+
+    it("style projection vertical-perspective", () => {
+      when.select("modal:settings.projection", "vertical-perspective");
+      then(
+        get.styleFromLocalStorage().then((style) => style.projection)
+      ).shouldInclude({ type: "vertical-perspective" });
+
+    });
+
     it("style renderer", () => {
       cy.on("uncaught:exception", () => false); // this is due to the fact that this is an invalid style for openlayers
       when.select("modal:settings.maputnik:renderer", "ol");
@@ -241,10 +285,10 @@ describe("modals", () => {
 
     it("inlcude API key when change renderer", () => {
 
-      when.click("modal:settings.close-modal")
+      when.click("modal:settings.close-modal");
       when.click("nav:open");
 
-      get.elementByAttribute('aria-label', "MapTiler Basic").should('exist').click();
+      get.elementByAttribute("aria-label", "MapTiler Basic").should("exist").click();
       when.wait(1000);
       when.click("nav:settings");
 
@@ -272,7 +316,136 @@ describe("modals", () => {
 
   });
 
+  describe("add layer", () => {
+    beforeEach(() => {
+      when.setStyle("layer");
+      when.modal.open();
+    });
+
+    it("shows duplicate id error", () => {
+      when.setValue("add-layer.layer-id.input", "background");
+      when.click("add-layer");
+      then(get.elementByTestId("modal:add-layer")).shouldExist();
+      then(get.element(".maputnik-modal-error")).shouldContainText(
+        "Layer ID already exists"
+      );
+    });
+  });
+
   describe("sources", () => {
     it("toggle");
+  });
+
+  describe("global state", () => {
+    beforeEach(() => {
+      when.click("nav:global-state");
+    });
+
+    it("add variable", () => {
+      when.wait(100);
+      when.click("global-state-add-variable");
+      then(get.styleFromLocalStorage()).shouldDeepNestedInclude({
+        state: { key1: { default: "value" } },
+      });
+    });
+
+
+    it("add multiple variables", () => {
+      when.click("global-state-add-variable");
+      when.click("global-state-add-variable");
+      when.click("global-state-add-variable");
+      when.wait(100);
+      then(get.styleFromLocalStorage()).shouldDeepNestedInclude({
+        state: { key1: { default: "value" }, key2: { default: "value" }, key3: { default: "value" } },
+      });
+    });
+
+    it("remove variable", () => {
+      when.click("global-state-add-variable");
+      when.click("global-state-add-variable");
+      when.click("global-state-add-variable");
+      when.click("global-state-remove-variable", 0);
+      when.wait(100);
+      then(get.styleFromLocalStorage()).shouldDeepNestedInclude({
+        state: { key2: { default: "value" }, key3: { default: "value" } },
+      });
+    });
+
+    it("edit variable key", () => {
+      when.click("global-state-add-variable");
+      when.wait(100);
+      when.setValue("global-state-variable-key:0", "mykey");
+      when.typeKeys("{enter}");
+      when.wait(100);
+      then(get.styleFromLocalStorage()).shouldDeepNestedInclude({
+        state: { mykey: { default: "value" } },
+      });
+    });
+
+    it("edit variable value", () => {
+      when.click("global-state-add-variable");
+      when.wait(100);
+      when.setValue("global-state-variable-value:0", "myvalue");
+      when.typeKeys("{enter}");
+      when.wait(100);
+      then(get.styleFromLocalStorage()).shouldDeepNestedInclude({
+        state: { key1: { default: "myvalue" } },
+      });
+    });
+  });
+
+  describe("error panel", () => {
+    it("not visible when no errors", () => {
+      then(get.element("maputnik-message-panel-error")).shouldNotExist();
+    });
+
+    it("visible on style error", () => {
+      when.modal.open();
+      when.modal.fillLayers({
+        type: "circle",
+        layer: "invalid",
+      });
+      then(get.element(".maputnik-message-panel-error")).shouldBeVisible();
+    });
+  });
+
+  describe("Handle localStorage QuotaExceededError", () => {
+    it("handles quota exceeded error when opening style from URL", () => {
+      // Clear localStorage to start fresh
+      cy.clearLocalStorage();
+
+      // fill localStorage until we get a QuotaExceededError
+      cy.window().then(win => {
+        let chunkSize = 1000;
+        const chunk = new Array(chunkSize).join("x");
+        let index = 0;
+
+        // Keep adding until we hit the quota
+        while (true) {
+          try {
+            const key = `maputnik:fill-${index++}`;
+            win.localStorage.setItem(key, chunk);
+          } catch (e: any) {
+            // Verify it's a quota error
+            if (e.name === "QuotaExceededError") {
+              if (chunkSize <= 1) return;
+              else {
+                chunkSize /= 2;
+                continue;
+              }
+            }
+            throw e; // Unexpected error
+          }
+        }
+      });
+
+      // Open the style via URL input
+      when.click("nav:open");
+      when.setValue("modal:open.url.input", get.exampleFileUrl());
+      when.click("modal:open.url.button");
+
+      then(get.responseBody("example-style.json")).shouldEqualToStoredStyle();
+      then(get.styleFromLocalStorage()).shouldExist();
+    });
   });
 });

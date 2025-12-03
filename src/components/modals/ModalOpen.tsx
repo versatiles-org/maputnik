@@ -1,16 +1,15 @@
-import React, { FormEvent } from 'react'
-import {MdFileUpload} from 'react-icons/md'
-import {MdAddCircleOutline} from 'react-icons/md'
-import FileReaderInput, { Result } from 'react-file-reader-input'
-import { Trans, WithTranslation, withTranslation } from 'react-i18next';
+import React, { type FormEvent } from "react";
+import {MdFileUpload} from "react-icons/md";
+import {MdAddCircleOutline} from "react-icons/md";
+import { Trans, type WithTranslation, withTranslation } from "react-i18next";
 
-import ModalLoading from './ModalLoading'
-import Modal from './Modal'
-import InputButton from './InputButton'
-import InputUrl from './InputUrl'
+import ModalLoading from "./ModalLoading";
+import Modal from "./Modal";
+import InputButton from "../InputButton";
+import InputUrl from "../InputUrl";
 
-import style from '../libs/style'
-import publicStyles from '../config/styles.json'
+import style from "../../libs/style";
+import publicStyles from "../../config/styles.json";
 
 type PublicStyleProps = {
   url: string
@@ -39,13 +38,13 @@ class PublicStyle extends React.Component<PublicStyleProps> {
           }}
         ></div>
       </InputButton>
-    </div>
+    </div>;
   }
 }
 
 type ModalOpenInternalProps = {
   isOpen: boolean
-  onOpenToggle(...args: unknown[]): unknown
+  onOpenToggle(): void
   onStyleOpen(...args: unknown[]): unknown
   fileHandle: FileSystemFileHandle | null
 } & WithTranslation;
@@ -68,7 +67,7 @@ class ModalOpenInternal extends React.Component<ModalOpenInternalProps, ModalOpe
   clearError() {
     this.setState({
       error: null
-    })
+    });
   }
 
   onCancelActiveRequest(e: Event) {
@@ -90,7 +89,7 @@ class ModalOpenInternal extends React.Component<ModalOpenInternalProps, ModalOpe
     let canceled: boolean = false;
 
     fetch(styleUrl, {
-      mode: 'cors',
+      mode: "cors",
       credentials: "same-origin"
     })
       .then(function(response) {
@@ -106,10 +105,10 @@ class ModalOpenInternal extends React.Component<ModalOpenInternalProps, ModalOpe
           activeRequestUrl: null
         });
 
-        const mapStyle = style.ensureStyleValidity(body)
-        console.log('Loaded style ', mapStyle.id)
-        this.props.onStyleOpen(mapStyle)
-        this.onOpenToggle()
+        const mapStyle = style.ensureStyleValidity(body);
+        console.log("Loaded style ", mapStyle.id);
+        this.props.onStyleOpen(mapStyle);
+        this.onOpenToggle();
       })
       .catch((err) => {
         this.setState({
@@ -118,8 +117,8 @@ class ModalOpenInternal extends React.Component<ModalOpenInternalProps, ModalOpe
           activeRequestUrl: null
         });
         console.error(err);
-        console.warn('Could not open the style URL', styleUrl)
-      })
+        console.warn("Could not open the style URL", styleUrl);
+      });
 
     this.setState({
       activeRequest: {
@@ -128,13 +127,13 @@ class ModalOpenInternal extends React.Component<ModalOpenInternalProps, ModalOpe
         }
       },
       activeRequestUrl: styleUrl
-    })
-  }
+    });
+  };
 
   onSubmitUrl = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     this.onStyleSelect(this.state.styleUrl);
-  }
+  };
 
   onOpenFile = async () => {
     this.clearError();
@@ -155,24 +154,26 @@ class ModalOpenInternal extends React.Component<ModalOpenInternalProps, ModalOpe
 
     let mapStyle;
     try {
-      mapStyle = JSON.parse(content)
+      mapStyle = JSON.parse(content);
     } catch (err) {
       this.setState({
         error: (err as Error).toString()
       });
       return;
     }
-    mapStyle = style.ensureStyleValidity(mapStyle)
+    mapStyle = style.ensureStyleValidity(mapStyle);
 
     this.props.onStyleOpen(mapStyle, fileHandle);
     this.onOpenToggle();
     return file;
-  }
+  };
 
   // it is not guaranteed that the File System Access API is available on all
   // browsers. If the function is not available, a fallback behavior is used.
-  onFileChanged = async (_: any, files: Result[]) => {
-    const [, file] = files[0];
+  onFileChanged = (files: FileList | null) => {
+    if (!files) return;
+    if (files.length === 0) return;
+    const file = files[0];
     const reader = new FileReader();
     this.clearError();
 
@@ -180,7 +181,7 @@ class ModalOpenInternal extends React.Component<ModalOpenInternalProps, ModalOpe
     reader.onload = e => {
       let mapStyle;
       try {
-        mapStyle = JSON.parse(e.target?.result as string)
+        mapStyle = JSON.parse(e.target?.result as string);
       }
       catch(err) {
         this.setState({
@@ -188,12 +189,12 @@ class ModalOpenInternal extends React.Component<ModalOpenInternalProps, ModalOpe
         });
         return;
       }
-      mapStyle = style.ensureStyleValidity(mapStyle)
+      mapStyle = style.ensureStyleValidity(mapStyle);
       this.props.onStyleOpen(mapStyle);
       this.onOpenToggle();
-    }
+    };
     reader.onerror = e => console.log(e.target);
-  }
+  };
 
   onOpenToggle() {
     this.setState({
@@ -207,7 +208,7 @@ class ModalOpenInternal extends React.Component<ModalOpenInternalProps, ModalOpe
     this.setState({
       styleUrl: url,
     });
-  }
+  };
 
   render() {
     const t = this.props.t;
@@ -218,8 +219,8 @@ class ModalOpenInternal extends React.Component<ModalOpenInternalProps, ModalOpe
         title={style.title}
         thumbnailUrl={style.thumbnail}
         onSelect={this.onStyleSelect}
-      />
-    })
+      />;
+    });
 
     let errorElement;
     if(this.state.error) {
@@ -237,7 +238,7 @@ class ModalOpenInternal extends React.Component<ModalOpenInternalProps, ModalOpe
           data-wd-key="modal:open"
           isOpen={this.props.isOpen}
           onOpenToggle={() => this.onOpenToggle()}
-          title={t('Open Style')}
+          title={t("Open Style")}
         >
           {errorElement}
           <section className="maputnik-modal-section">
@@ -246,13 +247,15 @@ class ModalOpenInternal extends React.Component<ModalOpenInternalProps, ModalOpe
             <div>
               {typeof window.showOpenFilePicker === "function" ? (
                 <InputButton
+                  data-wd-key="modal:open.file.button"
                   className="maputnik-big-button"
                   onClick={this.onOpenFile}><MdFileUpload/> {t("Open Style")}
                 </InputButton>
               ) : (
-                <FileReaderInput onChange={this.onFileChanged} tabIndex={-1} aria-label={t("Open Style")}>
-                  <InputButton className="maputnik-upload-button"><MdFileUpload /> {t("Open Style")}</InputButton>
-                </FileReaderInput>
+                <label>
+                  <a className="maputnik-button maputnik-upload-button" aria-label={t("Open Style")}><MdFileUpload /> {t("Open Style")}</a>
+                  <input data-wd-key="modal:open.file.input" type="file" style={{ display: "none" }} onChange={(e) => this.onFileChanged(e.target.files)} />
+                </label>
               )}
             </div>
           </section>
@@ -299,12 +302,12 @@ class ModalOpenInternal extends React.Component<ModalOpenInternalProps, ModalOpe
 
         <ModalLoading
           isOpen={!!this.state.activeRequest}
-          title={t('Loading style')}
+          title={t("Loading style")}
           onCancel={(e: Event) => this.onCancelActiveRequest(e)}
           message={t("Loading: {{requestUrl}}", { requestUrl: this.state.activeRequestUrl })}
         />
       </div>
-    )
+    );
   }
 }
 
