@@ -1,6 +1,26 @@
 ## main
 
 ### ✨ Features and improvements
+- Replace Cypress with Playwright for end-to-end tests and Vitest browser mode (Playwright provider) for component tests; drop the `@shellygo/cypress-test-utils` helper in favour of a `MaputnikDriver` page object
+- Upgrade to MapLibre GL JS 6 and Vite 8, and update the remaining dependencies
+- Serve the RTL text plugin from `@mapbox/mapbox-gl-rtl-text` instead of a pinned CDN URL, so its version is tracked in `package.json`
+- Exported HTML now loads MapLibre GL JS as an ES module, since v6 no longer ships a UMD bundle
+- Add `font-faces`, `sky`, `roll` and `centerAltitude` to the style settings modal
+- The sidebar can now be resized, both as a whole and in the split between the layer list and the layer editor
+- _...Add new stuff here..._
+
+### 🐞 Bug fixes
+- Prevent a crash when converting a function to an expression
+- Prevent a crash when deleting either stop from a function with two stops
+- Preserve expanded layer groups when deleting layers, including the first layer of a group
+- The map's data listener now fires on tile loads again, so source and vector layer field autocompletion is populated
+- The `maputnik` desktop binary now opens the default browser automatically on startup (opt out with `--no-browser`)
+- Keyboard shortcuts now keep working while the map has focus, instead of going dead until the map is blurred
+- _...Add new stuff here..._
+
+## 3.1.0
+
+### ✨ Features and improvements
 - Added translation to "Links" in debug modal
 - Add support for hillshade's color arrays and relief-color elevation expression
 - Change layers icons to make them a bit more distinct
@@ -14,21 +34,20 @@
 - Add support for sprite object in setting modal
 - Set the correct map view when opening a new style on an empty map
 - Allow root-relative urls in the stylefile
-- _...Add new stuff here..._
 
 ### 🐞 Bug fixes
 
+- Improved the local style open modal and local file upload.
 - Fixed the Expression editor (for long expressions) being able to be float under other components further down
 - Fixed an issue when clicking on a popup and then clicking on the map again
-- Fix modal close button possition
-- Fixed an issue with the generation of tranlations
+- Fix modal close button position
+- Fixed an issue with the generation of translations
 - Fix missing spec info when clicking next to a property
 - Fix Firefox open file that stopped working due to react upgrade
 - Fix issue with missing bottom error panel
 - Fixed headers in left panes (Layers list and Layer editor) to remain visible when scrolling
 - Fix error when using a source from localhost
 - Fix an issue with scrolling when using the code editor
-- _...Add new stuff here..._
 
 ## 3.0.0
 

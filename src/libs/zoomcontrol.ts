@@ -1,6 +1,6 @@
 import {type Map} from "maplibre-gl";
 
-export default class ZoomControl {
+export class ZoomControl {
   _map: Map| undefined = undefined;
   _container: HTMLDivElement | undefined = undefined;
   _textEl: HTMLSpanElement | null = null;
@@ -32,8 +32,6 @@ export default class ZoomControl {
 
   addEventListeners (){
     this._map!.on("render", () => this.updateZoomLevel());
-    this._map!.on("zoomIn", () => this.updateZoomLevel());
-    this._map!.on("zoomOut", () => this.updateZoomLevel());
   }
 
   onRemove() {

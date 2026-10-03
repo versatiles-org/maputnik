@@ -14,12 +14,12 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 
-import LayerListGroup from "./LayerListGroup";
-import LayerListItem from "./LayerListItem";
-import ModalAdd from "./modals/ModalAdd";
+import { LayerListGroup } from "./LayerListGroup";
+import { LayerListItem } from "./LayerListItem";
+import { ModalAdd } from "./modals/ModalAdd";
 
 import type {LayerSpecification, SourceSpecification} from "maplibre-gl";
-import generateUniqueId from "../libs/document-uid";
+import { generateUniqueId } from "../libs/document-uid";
 import { findClosestCommonPrefix, layerPrefix } from "../libs/layer";
 import { type WithTranslation, withTranslation } from "react-i18next";
 import { type MappedError, type OnMoveLayerCallback } from "../libs/definitions";
@@ -106,13 +106,13 @@ class LayerListContainerInternal extends React.Component<LayerListContainerInter
     });
   };
 
-  groupedLayers(): (LayerSpecification & {key: string})[][] {
+  groupedLayers(layers = this.props.layers): (LayerSpecification & {key: string})[][] {
     const groups = [];
     const layerIdCount = new Map();
 
-    for (let i = 0; i < this.props.layers.length; i++) {
-      const origLayer = this.props.layers[i];
-      const previousLayer = this.props.layers[i-1];
+    for (let i = 0; i < layers.length; i++) {
+      const origLayer = layers[i];
+      const previousLayer = layers[i-1];
       layerIdCount.set(origLayer.id,
         layerIdCount.has(origLayer.id) ? layerIdCount.get(origLayer.id) + 1 : 0
       );
@@ -192,7 +192,39 @@ class LayerListContainerInternal extends React.Component<LayerListContainerInter
     return propsChanged;
   }
 
+  /**
+   * Preserves group state through surviving layer IDs when group indices change.
+   * If deletion joins groups, the result stays expanded when either group was.
+   */
+  private preserveLayerGroupState(previousLayers: LayerSpecification[]) {
+    if (previousLayers === this.props.layers) return;
+
+    const collapsedByLayer = new Map<string, boolean>();
+    let idx = 0;
+    for (const layers of this.groupedLayers(previousLayers)) {
+      const collapsed = this.isCollapsed(layerPrefix(layers[0].id), idx);
+      for (const layer of layers) {
+        collapsedByLayer.set(layer.id, collapsed);
+      }
+      idx += layers.length;
+    }
+
+    const collapsedGroups: {[key: string]: boolean} = {};
+    idx = 0;
+    for (const layers of this.groupedLayers()) {
+      const lookupKey = [layerPrefix(layers[0].id), idx].join("-");
+      collapsedGroups[lookupKey] = layers.every(layer => collapsedByLayer.get(layer.id) !== false);
+      idx += layers.length;
+    }
+
+    if (!lodash.isEqual(collapsedGroups, this.state.collapsedGroups)) {
+      this.setState({ collapsedGroups });
+    }
+  }
+
   componentDidUpdate (prevProps: LayerListContainerProps) {
+    this.preserveLayerGroupState(prevProps.layers);
+
     if (prevProps.selectedLayerIndex !== this.props.selectedLayerIndex) {
       const selectedItemNode = this.selectedItemRef.current;
       if (selectedItemNode && selectedItemNode.node) {
@@ -336,7 +368,7 @@ type LayerListProps = LayerListContainerProps & {
   onMoveLayer: OnMoveLayerCallback
 };
 
-const LayerList: React.FC<LayerListProps> = (props) => {
+export const LayerList: React.FC<LayerListProps> = (props) => {
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
   const handleDragEnd = (event: DragEndEvent) => {
@@ -361,5 +393,3 @@ const LayerList: React.FC<LayerListProps> = (props) => {
     </DndContext>
   );
 };
-
-export default LayerList;

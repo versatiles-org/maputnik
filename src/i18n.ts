@@ -4,6 +4,7 @@ import resourcesToBackend from "i18next-resources-to-backend";
 import { initReactI18next } from "react-i18next";
 
 export const supportedLanguages = {
+  "az": "Azərbaycan",
   "de": "Deutsch",
   "en": "English",
   "fr": "Français",
@@ -11,6 +12,7 @@ export const supportedLanguages = {
   "it": "Italiano",
   "ja": "日本語",
   "ko": "한국어",
+  "tr": "Türkçe",
   "zh": "简体中文"
 } as const;
 
@@ -41,4 +43,4 @@ i18n
     }
   });
 
-export default i18n;
+export { i18n };

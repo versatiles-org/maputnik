@@ -46,6 +46,7 @@ The following users can help you with the relevant languages:
 
 | ISO Code | Language           | User                                       |
 |----------|--------------------|--------------------------------------------|
+| az       | Azerbaijani        | [@jamalkamaladdin](https://github.com/jamalkamaladdin) |
 | de       | German             | [@josxha](https://github.com/josxha)       |
 | en       | English            | [@HarelM](https://github.com/HarelM)       |
 | fr       | French             | [@lhapaipai](https://github.com/lhapaipai) |
@@ -54,6 +55,7 @@ The following users can help you with the relevant languages:
 | ja       | Japanese           | [@keichan34](https://github.com/keichan34) |
 | ko       | Korean             | [@jinifor](https://github.com/jinifor)     |
 | zh       | Simplified Chinese | [@jieme](https://github.com/jieme)         |
+| tr       | Turkish            | [@mcihad](https://github.com/mcihad)       |
 
 You can test the UI in different languages using the dropdown in the top menu
 Note that Maputnik automatically localize based on browser language settings and stores this language in local storage.

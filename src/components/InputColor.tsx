@@ -1,7 +1,6 @@
 import React from "react";
 import Color from "color";
-import ChromePicker from "react-color/lib/components/chrome/Chrome";
-import {type ColorResult} from "react-color";
+import {ChromePicker, type ColorResult} from "react-color";
 import lodash from "lodash";
 
 function formatColor(color: ColorResult): string {
@@ -20,7 +19,7 @@ export type InputColorProps = {
 };
 
 /*** Number fields with support for min, max and units and documentation*/
-export default class InputColor extends React.Component<InputColorProps> {
+export class InputColor extends React.Component<InputColorProps> {
   state = {
     pickerOpened: false
   };

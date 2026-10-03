@@ -1,9 +1,9 @@
 import React from "react";
 
-import SpecProperty from "./_SpecProperty";
-import DataProperty, { type Stop } from "./_DataProperty";
-import ZoomProperty from "./_ZoomProperty";
-import ExpressionProperty from "./_ExpressionProperty";
+import { SpecProperty } from "./SpecProperty";
+import { DataProperty, type Stop } from "./DataProperty";
+import { ZoomProperty } from "./ZoomProperty";
+import { ExpressionProperty } from "./ExpressionProperty";
 import {function as styleFunction} from "@maplibre/maplibre-gl-style-spec";
 import {findDefaultFromSpec} from "../libs/spec-helper";
 import { type MappedLayerErrors } from "../libs/definitions";
@@ -128,17 +128,11 @@ type FieldFunctionProps = {
 /** Supports displaying spec field for zoom function objects
  * https://www.mapbox.com/mapbox-gl-style-spec/#types-function-zoom-property
  */
-const FieldFunction: React.FC<FieldFunctionProps> = (props) => {
-  const [dataType, setDataType] = React.useState(
-    getDataType(props.value, props.fieldSpec)
-  );
+export const FieldFunction: React.FC<FieldFunctionProps> = (props) => {
   const [isEditing, setIsEditing] = React.useState(false);
-
-  React.useEffect(() => {
-    if (!isEditing) {
-      setDataType(getDataType(props.value, props.fieldSpec));
-    }
-  }, [props.value, props.fieldSpec, isEditing]);
+  // Keep the expression editor mounted while typing, but otherwise select the
+  // editor from the current value so a collapsed function never renders as stops.
+  const dataType = isEditing ? "expression" : getDataType(props.value, props.fieldSpec);
 
   const getFieldFunctionType = (fieldSpec: any) => {
     if (fieldSpec.expression.interpolated) {
@@ -173,7 +167,7 @@ const FieldFunction: React.FC<FieldFunctionProps> = (props) => {
   const deleteExpression = () => {
     const { fieldSpec, fieldName } = props;
     props.onChange(fieldName, fieldSpec.default);
-    setDataType("value");
+    setIsEditing(false);
   };
 
   const deleteStop = (stopIdx: number) => {
@@ -233,10 +227,10 @@ const FieldFunction: React.FC<FieldFunctionProps> = (props) => {
         type: "identity",
         property: value[1],
       });
-      setDataType("value");
+      setIsEditing(false);
     } else if (isLiteralExpression(value)) {
       props.onChange(fieldName, value[1]);
-      setDataType("value");
+      setIsEditing(false);
     }
   };
 
@@ -402,5 +396,3 @@ const FieldFunction: React.FC<FieldFunctionProps> = (props) => {
     </div>
   );
 };
-
-export default FieldFunction;

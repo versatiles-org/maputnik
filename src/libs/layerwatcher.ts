@@ -9,7 +9,7 @@ export type LayerWatcherOptions = {
 
 /** Listens to map events to build up a store of available vector
  * layers contained in the tiles */
-export default class LayerWatcher {
+export class LayerWatcher {
   onSourcesChange: (sources: { [sourceId: string]: string[] }) => void;
   onVectorLayersChange: (vectorLayers: { [vectorLayerId: string]: { [propertyName: string]: { [propertyValue: string]: {} } } }) => void;
   throttledAnalyzeVectorLayerFields: (map: any) => void;
@@ -25,7 +25,7 @@ export default class LayerWatcher {
 
     // Since we scan over all features we want to avoid this as much as
     // possible and only do it after a batch of data has loaded because
-    // we only care eventuall about knowing the fields in the vector layers
+    // we only care eventually about knowing the fields in the vector layers
     this.throttledAnalyzeVectorLayerFields = throttle(this.analyzeVectorLayerFields, 5000);
   }
 

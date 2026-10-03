@@ -11,29 +11,29 @@ import {type Map, type LayerSpecification, type StyleSpecification, type Validat
 import {validateStyleMin} from "@maplibre/maplibre-gl-style-spec";
 import latest from "@maplibre/maplibre-gl-style-spec/dist/latest.json";
 
-import MapMaplibreGl from "./MapMaplibreGl";
-import MapOpenLayers from "./MapOpenLayers";
-import CodeEditor from "./CodeEditor";
-import LayerList from "./LayerList";
-import LayerEditor from "./LayerEditor";
-import AppToolbar, { type MapState } from "./AppToolbar";
-import AppLayout from "./AppLayout";
-import MessagePanel from "./AppMessagePanel";
+import { MapMaplibreGl } from "./MapMaplibreGl";
+import { MapOpenLayers } from "./MapOpenLayers";
+import { CodeEditor } from "./CodeEditor";
+import { LayerList } from "./LayerList";
+import { LayerEditor } from "./LayerEditor";
+import { AppToolbar, type MapState } from "./AppToolbar";
+import { AppLayout } from "./AppLayout";
+import { AppMessagePanel as MessagePanel } from "./AppMessagePanel";
 
-import ModalSettings from "./modals/ModalSettings";
-import ModalExport from "./modals/ModalExport";
-import ModalSources from "./modals/ModalSources";
-import ModalOpen from "./modals/ModalOpen";
-import ModalShortcuts from "./modals/ModalShortcuts";
-import ModalDebug from "./modals/ModalDebug";
-import ModalGlobalState from "./modals/ModalGlobalState";
+import { ModalSettings } from "./modals/ModalSettings";
+import { ModalExport } from "./modals/ModalExport";
+import { ModalSources } from "./modals/ModalSources";
+import { ModalOpen } from "./modals/ModalOpen";
+import { ModalShortcuts } from "./modals/ModalShortcuts";
+import { ModalDebug } from "./modals/ModalDebug";
+import { ModalGlobalState } from "./modals/ModalGlobalState";
 
 import {downloadGlyphsMetadata, downloadSpriteMetadata} from "../libs/metadata";
-import style from "../libs/style";
+import { emptyStyle, getAccessToken, replaceAccessTokens } from "../libs/style";
 import { undoMessages, redoMessages } from "../libs/diffmessage";
 import { createStyleStore, type IStyleStore } from "../libs/store/style-store-factory";
 import { RevisionStore } from "../libs/revisions";
-import LayerWatcher from "../libs/layerwatcher";
+import { LayerWatcher } from "../libs/layerwatcher";
 import tokens from "../config/tokens.json";
 import isEqual from "lodash.isequal";
 import { type MapOptions } from "maplibre-gl";
@@ -48,19 +48,19 @@ function setFetchAccessToken(url: string, mapStyle: StyleSpecification) {
   const matchesThunderforest = url.match(/\.thunderforest\.com/);
   const matchesLocationIQ = url.match(/\.locationiq\.com/);
   if (matchesTilehosting || matchesMaptiler) {
-    const accessToken = style.getAccessToken("openmaptiles", mapStyle, {allowFallback: true});
+    const accessToken = getAccessToken("openmaptiles", mapStyle, {allowFallback: true});
     if (accessToken) {
       return url.replace("{key}", accessToken);
     }
   }
   else if (matchesThunderforest) {
-    const accessToken = style.getAccessToken("thunderforest", mapStyle, {allowFallback: true});
+    const accessToken = getAccessToken("thunderforest", mapStyle, {allowFallback: true});
     if (accessToken) {
       return url.replace("{key}", accessToken);
     }
   }
   else if (matchesLocationIQ) {
-    const accessToken = style.getAccessToken("locationiq", mapStyle, {allowFallback: true});
+    const accessToken = getAccessToken("locationiq", mapStyle, {allowFallback: true});
     if (accessToken) {
       return url.replace("{key}", accessToken);
     }
@@ -81,6 +81,22 @@ function updateRootSpec(spec: any, fieldName: string, newValues: any) {
       }
     }
   };
+}
+
+/**
+ * Whether the given element consumes keystrokes as text.
+ *
+ * Shortcuts have to stay out of the way while the user is typing, but asking
+ * whether the focus is on `document.body` answers a different question: the map
+ * canvas is not a text field, yet focusing it used to disable every shortcut.
+ */
+function isTextEntryElement(element: Element | null): boolean {
+  if (!element) return false;
+  const node = element as HTMLElement;
+  return node.isContentEditable ||
+    node.tagName === "INPUT" ||
+    node.tagName === "TEXTAREA" ||
+    node.tagName === "SELECT";
 }
 
 type AppState = {
@@ -123,7 +139,7 @@ type AppState = {
   fileHandle: FileSystemFileHandle | null
 };
 
-export default class App extends React.Component<any, AppState> {
+export class App extends React.Component<any, AppState> {
   revisionStore: RevisionStore;
   styleStore: IStyleStore | null = null;
   layerWatcher: LayerWatcher;
@@ -137,7 +153,7 @@ export default class App extends React.Component<any, AppState> {
     this.state = {
       errors: [],
       infos: [],
-      mapStyle: style.emptyStyle,
+      mapStyle: emptyStyle,
       selectedLayerIndex: 0,
       sources: {},
       vectorLayers: {},
@@ -242,7 +258,7 @@ export default class App extends React.Component<any, AppState> {
         (e.target as HTMLElement).blur();
         document.body.focus();
       }
-      else if(this.state.isOpen.shortcuts || document.activeElement === document.body) {
+      else if(this.state.isOpen.shortcuts || !isTextEntryElement(document.activeElement)) {
         const shortcut = shortcuts.find((shortcut) => {
           return (shortcut.key === e.key);
         });
@@ -450,7 +466,7 @@ export default class App extends React.Component<any, AppState> {
         if (message) {
           try {
             const objPath = message.split(":")[0];
-            // Errors can be deply nested for example 'layers[0].filter[1][1][0]' we only care upto the property 'layers[0].filter'
+            // Errors can be deeply nested for example 'layers[0].filter[1][1][0]' we only care upto the property 'layers[0].filter'
             const unsetPath = objPath.match(/^\S+?\[\d+\]\.[^[]+/)![0];
             unset(dirtyMapStyle, unsetPath);
           }
@@ -698,7 +714,7 @@ export default class App extends React.Component<any, AppState> {
       mapStyle: (dirtyMapStyle || mapStyle),
       mapView: this.state.mapView,
       replaceAccessTokens: (mapStyle: StyleSpecification) => {
-        return style.replaceAccessTokens(mapStyle, {
+        return replaceAccessTokens(mapStyle, {
           allowFallback: true
         });
       },

@@ -6,11 +6,11 @@ import {format} from "@maplibre/maplibre-gl-style-spec";
 import {MdMap, MdSave} from "react-icons/md";
 import {type WithTranslation, withTranslation} from "react-i18next";
 
-import FieldString from "../FieldString";
-import InputButton from "../InputButton";
-import Modal from "./Modal";
-import style from "../../libs/style";
-import fieldSpecAdditional from "../../libs/field-spec-additional";
+import { FieldString } from "../FieldString";
+import { InputButton } from "../InputButton";
+import { Modal } from "./Modal";
+import { replaceAccessTokens, stripAccessTokens } from "../../libs/style";
+import { spec as fieldSpecAdditional } from "../../libs/field-spec-additional";
 import type {OnStyleChangedCallback, StyleSpecificationWithId} from "../../libs/definitions";
 
 
@@ -32,8 +32,8 @@ class ModalExportInternal extends React.Component<ModalExportInternalProps> {
 
   tokenizedStyle() {
     return format(
-      style.stripAccessTokens(
-        style.replaceAccessTokens(this.props.mapStyle)
+      stripAccessTokens(
+        replaceAccessTokens(this.props.mapStyle)
       )
     );
   }
@@ -59,7 +59,6 @@ class ModalExportInternal extends React.Component<ModalExportInternalProps> {
   <meta charset="utf-8" />
   <title>${htmlTitle}</title>
   <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
-  <script src="https://unpkg.com/maplibre-gl@${MAPLIBRE_GL_VERSION}/dist/maplibre-gl.js"></script>
   <link href="https://unpkg.com/maplibre-gl@${MAPLIBRE_GL_VERSION}/dist/maplibre-gl.css" rel="stylesheet" />
   <style>
     body { margin: 0; padding: 0; }
@@ -68,8 +67,9 @@ class ModalExportInternal extends React.Component<ModalExportInternalProps> {
 </head>
 <body>
   <div id="map"></div>
-  <script>
-      const map = new maplibregl.Map({
+  <script type="module">
+      import {Map} from 'https://unpkg.com/maplibre-gl@${MAPLIBRE_GL_VERSION}/dist/maplibre-gl.mjs';
+      const map = new Map({
          container: 'map',
          style: ${tokenStyle},
       });
@@ -217,5 +217,4 @@ class ModalExportInternal extends React.Component<ModalExportInternalProps> {
   }
 }
 
-const ModalExport = withTranslation()(ModalExportInternal);
-export default ModalExport;
+export const ModalExport = withTranslation()(ModalExportInternal);

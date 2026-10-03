@@ -1,5 +1,5 @@
 import React from "react";
-import IconLayer from "./IconLayer";
+import { IconLayer } from "./IconLayer";
 import type {InspectFeature} from "./MapMaplibreGlFeaturePropertyPopup";
 
 function groupFeaturesBySourceLayer(features: InspectFeature[]) {
@@ -32,7 +32,7 @@ type FeatureLayerPopupProps = {
   zoom?: number
 };
 
-class FeatureLayerPopup extends React.Component<FeatureLayerPopupProps> {
+export class FeatureLayerPopup extends React.Component<FeatureLayerPopupProps> {
   _getFeatureColor(feature: InspectFeature, _zoom?: number) {
     // Guard because openlayers won't have this
     if (!feature.layer.paint) {
@@ -57,7 +57,7 @@ class FeatureLayerPopup extends React.Component<FeatureLayerPopupProps> {
       // Default color
       return "black";
     }
-    // This is quite complex, just incase there's an edgecase we're missing
+    // This is quite complex, just in case there's an edgecase we're missing
     // always return black if we get an unexpected error.
     catch (err) {
       console.warn("Unable to get feature color, error:", err);
@@ -109,6 +109,3 @@ class FeatureLayerPopup extends React.Component<FeatureLayerPopupProps> {
     </div>;
   }
 }
-
-
-export default FeatureLayerPopup;

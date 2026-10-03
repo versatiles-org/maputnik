@@ -7,13 +7,13 @@ import {migrate, convertFilter} from "@maplibre/maplibre-gl-style-spec";
 import latest from "@maplibre/maplibre-gl-style-spec/dist/latest.json";
 
 import {combiningFilterOps} from "../libs/filterops";
-import InputSelect from "./InputSelect";
-import Block from "./Block";
-import SingleFilterEditor from "./SingleFilterEditor";
-import FilterEditorBlock from "./FilterEditorBlock";
-import InputButton from "./InputButton";
-import Doc from "./Doc";
-import ExpressionProperty from "./_ExpressionProperty";
+import { InputSelect } from "./InputSelect";
+import { Block } from "./Block";
+import { SingleFilterEditor } from "./SingleFilterEditor";
+import { FilterEditorBlock } from "./FilterEditorBlock";
+import { InputButton } from "./InputButton";
+import { Doc } from "./Doc";
+import { ExpressionProperty } from "./ExpressionProperty";
 import { type WithTranslation, withTranslation } from "react-i18next";
 import type { MappedLayerErrors, StyleSpecificationWithId } from "../libs/definitions";
 
@@ -215,6 +215,7 @@ class FilterEditorInternal extends React.Component<FilterEditorInternalProps, Fi
             onClick={this.makeExpression}
             title={t("Convert to expression")}
             className="maputnik-make-zoom-function"
+            data-wd-key="filter-convert-to-expression"
           >
             <TbMathFunction />
           </InputButton>
@@ -248,6 +249,7 @@ class FilterEditorInternal extends React.Component<FilterEditorInternalProps, Fi
             fieldSpec={fieldSpec}
             label={t("Filter")}
             action={actions}
+            data-wd-key="filter-combining-operator"
           >
             <InputSelect
               value={combiningOp}
@@ -316,5 +318,4 @@ class FilterEditorInternal extends React.Component<FilterEditorInternalProps, Fi
   }
 }
 
-const FilterEditor = withTranslation()(FilterEditorInternal);
-export default FilterEditor;
+export const FilterEditor = withTranslation()(FilterEditorInternal);
